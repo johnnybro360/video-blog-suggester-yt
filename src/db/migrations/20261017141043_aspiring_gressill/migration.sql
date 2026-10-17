@@ -1,0 +1,1 @@
+DROP INDEX "content_url_idx";
