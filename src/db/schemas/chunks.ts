@@ -17,8 +17,7 @@ import {
         .notNull()
         .references(() => content.id, { onDelete: "cascade" }),
       startPosition: integer(),
-      // TODO: Change to not null when implementing embedding
-      embedding: vector({ dimensions: 768 }),
+      embedding: vector({ dimensions: 768 }).notNull(),
       text: text().notNull(),
       ...timestamps,
     },

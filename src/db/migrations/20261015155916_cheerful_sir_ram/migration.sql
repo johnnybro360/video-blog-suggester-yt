@@ -1,8 +1,4 @@
-CREATE TABLE "tests" (
-	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "tests_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
-	"name" varchar(255) NOT NULL
-);
---> statement-breakpoint
+CREATE TYPE "content_type" AS ENUM('video', 'article');--> statement-breakpoint
 CREATE TABLE "account" (
 	"id" uuid PRIMARY KEY DEFAULT pg_catalog.gen_random_uuid(),
 	"issuer" text NOT NULL,
@@ -50,9 +46,35 @@ CREATE TABLE "verification" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "content" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+	"title" text NOT NULL,
+	"description" text NOT NULL,
+	"publish_date" date NOT NULL,
+	"url" text NOT NULL UNIQUE,
+	"thumbnail_url" text NOT NULL,
+	"type" "content_type" NOT NULL,
+	"content" text NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "chunks" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+	"content_id" uuid NOT NULL,
+	"start_position" integer,
+	"embedding" vector(768),
+	"text" text NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE UNIQUE INDEX "account_issuer_accountId_uidx" ON "account" ("issuer","account_id");--> statement-breakpoint
 CREATE INDEX "account_userId_idx" ON "account" ("user_id");--> statement-breakpoint
 CREATE INDEX "session_userId_idx" ON "session" ("user_id");--> statement-breakpoint
 CREATE INDEX "verification_identifier_idx" ON "verification" ("identifier");--> statement-breakpoint
+CREATE INDEX "content_url_idx" ON "content" ("url");--> statement-breakpoint
+CREATE INDEX "chunks_contentId_idx" ON "chunks" ("content_id");--> statement-breakpoint
 ALTER TABLE "account" ADD CONSTRAINT "account_user_id_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE;--> statement-breakpoint
-ALTER TABLE "session" ADD CONSTRAINT "session_user_id_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE;
+ALTER TABLE "session" ADD CONSTRAINT "session_user_id_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "chunks" ADD CONSTRAINT "chunks_content_id_content_id_fkey" FOREIGN KEY ("content_id") REFERENCES "content"("id") ON DELETE CASCADE;

@@ -8,5 +8,6 @@ export default defineConfig({
     dialect: "postgresql",
     dbCredentials: {
         url: serverEnv.DATABASE_URL
-    }
+    },
+    schemaFilter: ["public"],
 })
