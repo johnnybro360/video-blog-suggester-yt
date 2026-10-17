@@ -1,4 +1,4 @@
-import { text, date, index, pgEnum, snakeCase } from "drizzle-orm/pg-core"
+import { text, date, pgEnum, snakeCase } from "drizzle-orm/pg-core"
 import { id, timestamps } from "../utils"
 
 export const contentTypeEnum = pgEnum("content_type", ["video", "article"])
@@ -16,5 +16,4 @@ export const content = snakeCase.table(
     content: text().notNull(),
     ...timestamps,
   },
-  table => [index("content_url_idx").on(table.url)],
 )
