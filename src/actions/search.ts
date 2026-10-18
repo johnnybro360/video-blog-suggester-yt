@@ -1,21 +1,29 @@
-"use server"
+"use server";
 
-import { db } from "@/db/db"
-import { chunks, content } from "@/db/schema"
-import { eq, sql, gt, desc, cosineDistance } from "drizzle-orm"
-import { embed } from "ai"
-import { getEmbeddingModel } from "@/lib/embedding/get-embedding-model"
+import { db } from "@/db/db";
+import { chunks, content } from "@/db/schema";
+import { eq, sql, gt, desc, cosineDistance } from "drizzle-orm";
+import { embed } from "ai";
+import { getEmbeddingModel } from "@/lib/embedding/get-embedding-model";
+import { auth } from "@/lib/auth/config";
+import { headers } from "next/headers";
 
 export async function searchContent(query: string) {
-  if (!query.trim()) return []
+  const user = auth.api.getSession({ headers: await headers() });
 
-  const model = getEmbeddingModel()
+  if (!user) {
+    return [];
+  }
+
+  if (!query.trim()) return [];
+
+  const model = getEmbeddingModel();
   const { embedding: queryVector } = await embed({
     model,
     value: query.trim().toLowerCase(),
-  })
+  });
 
-  const dbSimilarity = sql<number>`1 - (${cosineDistance(chunks.embedding, queryVector)})`
+  const dbSimilarity = sql<number>`1 - (${cosineDistance(chunks.embedding, queryVector)})`;
 
   const matchedChunks = await db
     .selectDistinctOn([content.id], {
@@ -32,12 +40,11 @@ export async function searchContent(query: string) {
     .from(chunks)
     .where(gt(dbSimilarity, 0.5))
     .innerJoin(content, eq(content.id, chunks.contentId))
-    .orderBy(content.id, desc(dbSimilarity))
-    .limit(20)
+    .orderBy(content.id, desc(dbSimilarity));
 
   const sortedResults = matchedChunks.sort(
     (a, b) => b.similarity - a.similarity,
-  )
+  );
 
-  return sortedResults
+  return sortedResults.slice(0, 20);
 }
