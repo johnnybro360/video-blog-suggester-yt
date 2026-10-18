@@ -21,5 +21,10 @@ import {
       text: text().notNull(),
       ...timestamps,
     },
-    table => [index("chunks_contentId_idx").on(table.contentId)],
+    table => [index("chunks_contentId_idx").on(table.contentId),
+      index("embedding_index").using(
+        "hnsw",
+        table.embedding.op("vector_cosine_ops"),
+      ),
+    ],
   )
