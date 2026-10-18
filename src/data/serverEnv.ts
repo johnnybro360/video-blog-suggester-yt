@@ -11,7 +11,7 @@ export const serverEnv = createEnv({
     LOCAL_EMBEDDING_BASE_URL: z.url().optional(),
     EMBEDDING_PROVIDER: z.enum(["nomic", "qwen", "openai"]),
     // OPENAI_API_KEY: z.string(),
-    // CRON_SECRET: z.string(),
+    CRON_SECRET: z.string(),
     // GOOGLE_CLIENT_ID: z.string(),
     // GOOGLE_CLIENT_SECRET: z.string(),
     // GOOGLE_REFRESH_TOKEN: z.string(),
