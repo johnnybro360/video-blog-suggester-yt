@@ -2,10 +2,17 @@
 
 import { searchContent } from "@/actions/search"
 
+
+type Result = Exclude<
+  Awaited<ReturnType<typeof searchContent>>,
+  { error: string }
+>
+
+
 export default function SearchResults({
   results,
 }: {
-  results: Awaited<ReturnType<typeof searchContent>>
+  results: Result
 }) {
   if (results.length === 0) return null
 
@@ -58,7 +65,7 @@ export default function SearchResults({
 }
 
 function getUrlAtChunkLocation(
-  result: Awaited<ReturnType<typeof searchContent>>[number],
+  result: Result[number],
 ) {
   const type = result.type
 

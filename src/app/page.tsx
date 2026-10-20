@@ -1,67 +1,63 @@
 "use client";
 
 import { useSession, signIn } from "@/lib/auth/client";
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect, useCallback } from "react";
 
-import { searchContent } from "@/actions/search"
+import { searchContent } from "@/actions/search";
 import Header from "./components/Header";
 import SearchResults from "./components/SearchResults";
 
 export default function Home() {
   const { data: session, isPending } = useSession();
-  const [query, setQuery] = useState("")
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState<
     Awaited<ReturnType<typeof searchContent>>
-  >([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-
+  >([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const doSearch = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) {
-      setResults([])
-      setError(null)
-      return
+      setResults([]);
+      setError(null);
+      return;
     }
-    setIsLoading(true)
-    setError(null)
-    try {
-      const searchResults = await searchContent(searchQuery)
-      setResults(searchResults)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Search failed")
-      setResults([])
-    } finally {
-      setIsLoading(false)
+    setIsLoading(true);
+    setError(null);
+    const searchResults = await searchContent(searchQuery);
+    if (searchResults && "error" in searchResults) {
+      setError(searchResults.error);
+    } else {
+      setResults(searchResults);
     }
-  }, [])
+    setIsLoading(false);
+  }, []);
 
-
-const handleSearch = useCallback(() => {
-    doSearch(query)
-  }, [query, doSearch])
+  const handleSearch = useCallback(() => {
+    doSearch(query);
+  }, [query, doSearch]);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(e.target.value)
-  }, [])
+    setQuery(e.target.value);
+  }, []);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter") {
-        e.preventDefault()
-        handleSearch()
+        e.preventDefault();
+        handleSearch();
       }
     },
     [handleSearch],
-  )
+  );
 
   // Auto-focus search on mount
   useEffect(() => {
     if (session && inputRef.current) {
-      inputRef.current.focus()
+      inputRef.current.focus();
     }
-  }, [session])
+  }, [session]);
 
   return (
     <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
@@ -171,8 +167,8 @@ const handleSearch = useCallback(() => {
               </div>
             </div>
 
-                    {/* Sign-in prompt */}
-                    {!session && !isPending && (
+            {/* Sign-in prompt */}
+            {!session && !isPending && (
               <div className="mt-6 flex flex-col items-center gap-3 text-center">
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
                   You need to sign in to search our content
@@ -231,12 +227,12 @@ const handleSearch = useCallback(() => {
         </div>
 
         {/* Results */}
-        {results.length > 0 && (
+        {Array.isArray(results) && results.length > 0 && (
           <div className="w-full pt-8 pb-16">
             <SearchResults results={results} />
           </div>
         )}
       </main>
     </div>
-  )
+  );
 }
